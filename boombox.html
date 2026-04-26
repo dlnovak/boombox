@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darin Novak — Boombox</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #1a1a1a;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  #app {
+    width: 100vw;
+    max-width: calc(100vh * 16 / 9);
+    aspect-ratio: 16 / 9;
+    position: relative;
+  }
+  @keyframes pwrPulse {
+    0%,100% { box-shadow: 0 0 4px rgba(200,0,0,0.15), 0 2px 5px rgba(0,0,0,0.25); }
+    50%      { box-shadow: 0 0 18px rgba(200,0,0,0.65), 0 2px 5px rgba(0,0,0,0.25); }
+  }
+  @keyframes recBlink {
+    0%,100% { opacity:1; } 50% { opacity:0.2; }
+  }
+  button { touch-action: manipulation; cursor: pointer; font-family: monospace; }
+  button:focus { outline: none; }
+
+  /* ── OUTER WRAPPER ── */
+  #outer {
+    width: 94%; height: 90%;
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  /* HANDLE */
+  #handle {
+    position: absolute;
+    top: -22px; left: 22%; right: 22%; height: 28px;
+    border-top: 7px solid #b8b8b8;
+    border-left: 7px solid #b8b8b8;
+    border-right: 7px solid #b8b8b8;
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.12), inset 0 2px 4px rgba(255,255,255,0.5);
+  }
+
+  /* ANTENNA */
+  #antenna {
+    position: absolute;
+    top: -56px; right: 17%;
+    width: 3px; height: 60px;
+    background: linear-gradient(180deg,#ccc 0%,#aaa 50%,#999 100%);
+    border-radius: 2px 2px 0 0;
+    transform-origin: bottom center;
+    transform: rotate(-8deg);
+    box-shadow: 1px 0 3px rgba(0,0,0,0.12);
+  }
+  #antenna::before {
+    content:'';
+    position:absolute; top:-4px; left:50%;
+    transform:translateX(-50%);
+    width:7px; height:7px; border-radius:50%;
+    background:#bbb; border:1px solid #999;
+  }
+
+  /* BODY */
+  #body {
+    width: 100%; height: 100%;
+    background: linear-gradient(170deg,#e8e8e8 0%,#d8d8d8 55%,#c8c8c8 100%);
+    border-radius: 10px;
+    border: 1px solid #aaa;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.9);
+    display: flex; flex-direction: column;
+    padding: 8px 12px 10px; gap: 6px;
+    position: relative; overflow: hidden;
+  }
+  #body::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,#bbb,#eee,#ccc,#eee,#bbb);
+    border-radius:10px 10px 0 0;
+  }
+  #body::after {
+    content:'';
+    position:absolute; bottom:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,#bbb,#eee,#ccc,#eee,#bbb);
+    border-radius:0 0 10px 10px;
+  }
+  #brand {
+    position:absolute; top:9px; left:18px;
+    font-size:9px; color:#888; font-family:monospace;
+    letter-spacing:3px;
+  }
+
+  /* ── ROW 1: TUNER ── */
+  #row-tuner {
+    display:flex; gap:8px; align-items:center;
+    margin-top:8px;
+  }
+  .tweeter {
+    width:42px; height:42px; flex-shrink:0;
+    border:1px solid #aaa; border-radius:4px; overflow:hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .grille {
+    width:100%; height:100%;
+    background:#1c1c1c;
+    background-image: radial-gradient(circle,#0a0a0a 2.5px,transparent 2.5px);
+    background-size:9px 9px;
+    background-position:4px 4px;
+    border-radius:4px;
+  }
+  #tuner {
+    flex:1; height:52px; cursor:pointer;
+    background:linear-gradient(180deg,#d4e8f8 0%,#c0d8f0 50%,#cce0f4 100%);
+    border:1px solid #90b0cc; border-radius:3px;
+    position:relative; overflow:hidden;
+    box-shadow:inset 0 1px 4px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.9);
+  }
+  #tuner-label {
+    position:absolute; top:4px; left:8px;
+    font-size:8px; color:#225; font-family:monospace;
+    font-weight:bold; letter-spacing:1px;
+  }
+  #tuner-marks {
+    position:absolute; bottom:0; left:10px; right:10px;
+    display:flex; justify-content:space-between; align-items:flex-end;
+  }
+  .tmark { display:flex; flex-direction:column; align-items:center; }
+  .tmark-line { width:1px; background:#335; }
+  .tmark-label { font-size:6.5px; color:#334; font-family:monospace; margin-top:1px; }
+  #needle {
+    position:absolute; top:0; bottom:0; width:2px;
+    background:#e00; box-shadow:0 0 4px #e00;
+    transform:translateX(-1px);
+    transition:left 0.15s;
+    pointer-events:none;
+  }
+  #needle::before {
+    content:'';
+    position:absolute; top:2px; left:-3px;
+    border-left:4px solid transparent;
+    border-right:4px solid transparent;
+    border-top:7px solid #e00;
+  }
+  #tuner-glare {
+    position:absolute; top:0; left:0; right:0; height:45%;
+    background:linear-gradient(180deg,rgba(255,255,255,0.35),transparent);
+    pointer-events:none;
+  }
+
+  /* ── ROW 2: KNOBS ── */
+  #row-knobs {
+    display:flex; gap:8px; align-items:center;
+    background:rgba(0,0,0,0.04); border-radius:4px; padding:5px 8px;
+  }
+  .knob-wrap { display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .knob {
+    border-radius:50%; cursor:ns-resize; position:relative; user-select:none;
+    background:radial-gradient(circle at 36% 28%,#f0f0f0 0%,#b8b8b8 50%,#888 100%);
+    box-shadow:0 3px 8px rgba(0,0,0,0.35),inset 0 1px 3px rgba(255,255,255,0.8),0 0 0 2px #aaa;
+    flex-shrink:0;
+  }
+  .knob-dot {
+    position:absolute; top:3px; left:50%;
+    transform:translateX(-50%);
+    width:2px; height:9px; background:#444; border-radius:1px;
+  }
+  .knob-label { font-size:7px; color:#666; font-family:monospace; letter-spacing:1px; text-transform:uppercase; }
+  .divider { width:1px; height:30px; background:#bbb; flex-shrink:0; }
+  .mbtns { display:flex; gap:3px; flex-wrap:wrap; }
+  .mbtn {
+    padding:3px 7px; border-radius:2px; border:1px solid #aaa; font-size:7px;
+    font-family:monospace; letter-spacing:0.5px; user-select:none; transition:all 0.1s;
+  }
+  .mbtn.off { background:linear-gradient(180deg,#ddd,#bbb); color:#555; box-shadow:0 1px 2px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.6); }
+  .mbtn.on  { background:#335; color:#aaddff; box-shadow:inset 0 1px 3px rgba(0,0,0,0.4); }
+  #flex1 { flex:1; }
+  #power-btn {
+    width:34px; height:34px; border-radius:50%; border:2px solid #999;
+    font-size:15px; transition:all 0.2s;
+  }
+  #power-btn.off {
+    background:radial-gradient(circle at 38% 30%,#e0e0e0 0%,#b8b8b8 50%,#999 100%);
+    color:#888;
+    animation:pwrPulse 1.6s ease-in-out infinite;
+    box-shadow:0 2px 5px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  #power-btn.on {
+    background:radial-gradient(circle at 38% 30%,#ff6666 0%,#cc0000 50%,#880000 100%);
+    color:#ffdddd;
+    animation:none;
+    box-shadow:0 0 14px rgba(220,0,0,0.55),0 2px 5px rgba(0,0,0,0.3);
+  }
+  #power-label { font-size:7px; font-family:monospace; text-align:center; margin-top:2px; }
+
+  /* ── ROW 3: SPEAKERS + CENTER ── */
+  #row-main {
+    display:flex; flex:1; gap:10px; align-items:stretch; min-height:0;
+  }
+  .speaker {
+    width:27%; border:2px solid #aaa; border-radius:6px; overflow:hidden;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,0.2);
+  }
+
+  /* CENTER COL */
+  #center {
+    flex:1; display:flex; flex-direction:column; gap:6px;
+  }
+
+  /* VU ROW */
+  #vu-row {
+    display:flex; gap:6px; align-items:center;
+    background:#111; border-radius:5px; padding:5px 10px;
+    border:1px solid #2a2a2a; box-shadow:inset 0 2px 4px rgba(0,0,0,0.6);
+  }
+  .vu-bar { display:flex; gap:2px; align-items:flex-end; height:18px; }
+  .vu-seg { border-radius:1px; transition:background 0.04s; }
+  #sc-dot {
+    width:6px; height:6px; border-radius:50%;
+    background:#cc4400; box-shadow:0 0 5px #cc4400;
+    transition:all 0.3s; flex-shrink:0;
+  }
+  #sc-dot.live { background:#00cc44; box-shadow:0 0 5px #00cc44; }
+  #sc-label { font-size:7px; font-family:monospace; letter-spacing:1px; color:#996633; transition:color 0.3s; }
+  #sc-label.live { color:#00aa33; }
+
+  /* CASSETTE */
+  #cassette-window {
+    flex:1; border:2px solid #aaa; border-radius:6px;
+    background:#e8e8e0; position:relative; overflow:hidden;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,0.12);
+  }
+  #cassette-inner {
+    display:flex; align-items:center; justify-content:space-around;
+    height:100%; padding:4px 10px;
+  }
+  #cassette-brand {
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .brand-name { font-size:16px; color:#334; font-family:Georgia,serif; font-weight:bold; letter-spacing:1px; }
+  .brand-sub  { font-size:7px; color:#888; font-family:monospace; }
+  #rec-dot {
+    width:7px; height:7px; border-radius:50%;
+    background:#cc0000; box-shadow:0 0 5px #cc0000;
+    margin-top:2px; display:none;
+    animation:recBlink 1s ease-in-out infinite;
+  }
+  /* cassette door */
+  #cassette-door {
+    position:absolute; top:0; left:0; right:0; bottom:0;
+    background:linear-gradient(180deg,#ddd 0%,#ccc 60%,#bbb 100%);
+    transform-origin:top center;
+    transform:perspective(250px) rotateX(0deg);
+    transition:transform 0.42s cubic-bezier(0.4,0,0.2,1);
+    border-radius:4px; z-index:2;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #cassette-door::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px; background:#bbb;
+  }
+  .door-text { display:flex; flex-direction:column; align-items:center; gap:4px; pointer-events:none; }
+  .door-text span { font-size:10px; color:#999; font-family:monospace; letter-spacing:3px; }
+  .door-text hr { width:50px; border:none; border-top:1px solid #bbb; }
+  .door-text small { font-size:8px; color:#bbb; font-family:monospace; }
+  #cassette-empty {
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    z-index:1; opacity:0; transition:opacity 0.3s 0.2s;
+  }
+  #cassette-empty span {
+    font-size:10px; color:#bbb; font-family:monospace; letter-spacing:4px;
+    border:1px dashed #ccc; padding:3px 10px; border-radius:3px;
+  }
+
+  /* LCD */
+  #lcd {
+    background:#0e0e08; border:1px solid #1a1a10; border-radius:4px;
+    padding:5px 10px; box-shadow:inset 0 0 8px rgba(0,0,0,0.8);
+  }
+  #lcd-line1 {
+    font-size:13px; font-family:monospace; letter-spacing:1.5px;
+    color:#1a0e00; overflow:hidden; white-space:nowrap;
+    text-shadow:none; transition:color 0.3s, text-shadow 0.3s;
+    position:relative; height:17px;
+  }
+  #lcd-scroll {
+    position:absolute; top:0; left:0; white-space:nowrap;
+    display:inline-block;
+  }
+  #lcd-line2 {
+    font-size:9px; font-family:monospace; letter-spacing:1px;
+    color:#0f0900; margin-top:2px;
+    transition:color 0.3s, text-shadow 0.3s;
+  }
+  #lcd.powered #lcd-line1 { color:#ff9900; text-shadow:0 0 8px rgba(255,153,0,0.4); }
+  #lcd.powered #lcd-line2 { color:#cc6600; text-shadow:0 0 5px rgba(204,102,0,0.3); }
+
+  /* ── ROW 4: TRANSPORT ── */
+  #row-transport { display:flex; gap:4px; }
+  .tbtn {
+    flex:1; height:34px; border-radius:3px; border:1px solid #999;
+    background:linear-gradient(180deg,#e8e8e8 0%,#d0d0d0 50%,#c0c0c0 100%);
+    color:#333;
+    box-shadow:0 2px 4px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.8);
+    transition:all 0.06s; user-select:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  }
+  .tbtn:active, .tbtn.active {
+    background:linear-gradient(180deg,#bbb 0%,#d4d4d4 100%);
+    box-shadow:inset 0 3px 5px rgba(0,0,0,0.3);
+    transform:translateY(2px);
+  }
+  .tbtn.danger { background:linear-gradient(180deg,#e8d8d8 0%,#d0c0c0 100%); color:#880000; }
+  .tbtn:disabled { opacity:0.4; cursor:default; }
+  .tbtn-icon { font-size:12px; line-height:1; }
+  .tbtn-label { font-size:7px; letter-spacing:0.5px; }
+
+  /* REEL SVG */
+  .reel-svg { transition:none; }
+
+  /* progress bar */
+  #progress-bar-wrap {
+    height:3px; background:#1a1a10; border-radius:2px; margin-top:3px; overflow:hidden;
+  }
+  #progress-bar {
+    height:100%; background:#ff9900; border-radius:2px;
+    width:0%; transition:width 0.5s linear;
+    box-shadow:0 0 4px #ff990044;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="outer">
+    <div id="handle"></div>
+    <div id="antenna"></div>
+
+    <div id="body">
+      <div id="brand">AMBIENCE</div>
+
+      <!-- ROW 1: TUNER -->
+      <div id="row-tuner">
+        <div class="tweeter"><div class="grille"></div></div>
+        <div id="tuner">
+          <div id="tuner-label">FM  AFC</div>
+          <div id="tuner-marks"></div>
+          <div id="needle" style="left:50%"></div>
+          <div id="tuner-glare"></div>
+        </div>
+        <div class="tweeter"><div class="grille"></div></div>
+      </div>
+
+      <!-- ROW 2: KNOBS -->
+      <div id="row-knobs">
+        <div class="knob-wrap">
+          <div class="knob" id="knob-vol" data-key="vol" style="width:38px;height:38px;"><div class="knob-dot"></div></div>
+          <span class="knob-label">VOL</span>
+        </div>
+        <div class="knob-wrap">
+          <div class="knob" id="knob-bal" data-key="bal" style="width:38px;height:38px;"><div class="knob-dot"></div></div>
+          <span class="knob-label">BAL</span>
+        </div>
+        <div class="knob-wrap">
+          <div class="knob" id="knob-tone" data-key="tone" style="width:38px;height:38px;"><div class="knob-dot"></div></div>
+          <span class="knob-label">TONE</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="mbtns">
+          <button class="mbtn off" id="mbtn-stereo">STEREO</button>
+          <button class="mbtn off" id="mbtn-mono">MONO</button>
+          <button class="mbtn off" id="mbtn-tape">TAPE</button>
+          <button class="mbtn on"  id="mbtn-radio">RADIO</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="mbtns">
+          <button class="mbtn on"  id="mbtn-fm">FM</button>
+          <button class="mbtn off" id="mbtn-am">AM</button>
+        </div>
+
+        <div id="flex1"></div>
+
+        <div class="knob-wrap">
+          <div class="knob" id="knob-level" data-key="level" style="width:38px;height:38px;"><div class="knob-dot"></div></div>
+          <span class="knob-label">LEVEL</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+          <button id="power-btn" class="off">⏻</button>
+          <span id="power-label" style="color:#999;">OFF</span>
+        </div>
+      </div>
+
+      <!-- ROW 3: SPEAKERS + CENTER -->
+      <div id="row-main">
+        <div class="speaker"><div class="grille"></div></div>
+
+        <div id="center">
+          <!-- VU -->
+          <div id="vu-row">
+            <div class="vu-bar" id="vu-l"></div>
+            <div class="divider" style="height:14px;"></div>
+            <div class="vu-bar" id="vu-r"></div>
+            <div id="flex1" style="flex:1;"></div>
+            <div id="sc-dot"></div>
+            <span id="sc-label">SC</span>
+          </div>
+
+          <!-- CASSETTE -->
+          <div id="cassette-window">
+            <div id="cassette-inner">
+              <svg id="reel-l" class="reel-svg" width="50" height="50" viewBox="-25 -25 50 50">
+                <circle r="22" fill="#c8a050" stroke="#a07030" stroke-width="1.5"/>
+                <circle r="8" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="1"/>
+                <line id="rl0" x1="0" y1="0" x2="15" y2="0" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                <line id="rl1" x1="0" y1="0" x2="-7.5" y2="13" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                <line id="rl2" x1="0" y1="0" x2="-7.5" y2="-13" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                <circle r="3" fill="#666"/><circle r="1.5" fill="#999"/>
+              </svg>
+              <div id="cassette-brand">
+                <span class="brand-name">National</span>
+                <span class="brand-sub">FM-AM STEREO RX-5150</span>
+                <div id="rec-dot"></div>
+              </div>
+              <svg id="reel-r" class="reel-svg" width="50" height="50" viewBox="-25 -25 50 50">
+                <circle r="22" fill="#c8a050" stroke="#a07030" stroke-width="1.5"/>
+                <circle r="8" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="1"/>
+                <line id="rr0" x1="0" y1="0" x2="15" y2="0" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                <line id="rr1" x1="0" y1="0" x2="-7.5" y2="13" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                <line id="rr2" x1="0" y1="0" x2="-7.5" y2="-13" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>
+                <circle r="3" fill="#666"/><circle r="1.5" fill="#999"/>
+              </svg>
+            </div>
+            <div id="cassette-door">
+              <div class="door-text">
+                <span>CASSETTE</span><hr><small>SOFT TOUCH</small>
+              </div>
+            </div>
+            <div id="cassette-empty"><span>INSERT TAPE</span></div>
+          </div>
+
+          <!-- LCD -->
+          <div id="lcd">
+            <div id="lcd-line1"><span id="lcd-scroll">- - - - - - - -</span></div>
+            <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+            <div id="lcd-line2"></div>
+          </div>
+        </div>
+
+        <div class="speaker"><div class="grille"></div></div>
+      </div>
+
+      <!-- ROW 4: TRANSPORT -->
+      <div id="row-transport">
+        <button class="tbtn" id="btn-eject">
+          <span class="tbtn-icon">⏏</span><span class="tbtn-label">EJECT</span>
+        </button>
+        <button class="tbtn" id="btn-rew" disabled>
+          <span class="tbtn-icon">⏮</span><span class="tbtn-label">REW</span>
+        </button>
+        <button class="tbtn" id="btn-ff" disabled>
+          <span class="tbtn-icon">⏭</span><span class="tbtn-label">F.FWD</span>
+        </button>
+        <button class="tbtn" id="btn-stop" disabled>
+          <span class="tbtn-icon">■</span><span class="tbtn-label">STOP</span>
+        </button>
+        <button class="tbtn" id="btn-play" disabled>
+          <span class="tbtn-icon">▶</span><span class="tbtn-label">PLAY</span>
+        </button>
+        <button class="tbtn" id="btn-pause" disabled>
+          <span class="tbtn-icon">⏸</span><span class="tbtn-label">PAUSE</span>
+        </button>
+        <button class="tbtn danger" id="btn-rec">
+          <span class="tbtn-icon">⏺</span><span class="tbtn-label">REC</span>
+        </button>
+      </div>
+    </div><!-- /body -->
+  </div><!-- /outer -->
+</div><!-- /app -->
+
+<!-- HIDDEN SOUNDCLOUD IFRAME -->
+<iframe id="sc-iframe"
+  src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/darin-novak&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false"
+  style="display:none;" allow="autoplay" title="sc"></iframe>
+
+<script src="https://w.soundcloud.com/player/api.js"></script>
+<script>
+// ── AUDIO ENGINE ──────────────────────────────────────────────
+let _ac;
+const getAC = () => {
+  if (!_ac) _ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (_ac.state === 'suspended') _ac.resume();
+  return _ac;
+};
+const osc = (freq, dur, type='sine', vol=0.12) => {
+  try {
+    const c=getAC(), o=c.createOscillator(), g=c.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+    o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime+dur+0.02);
+  } catch(e){}
+};
+const noise = (freq, dur, vol=0.2) => {
+  try {
+    const c=getAC(), sz=Math.floor(c.sampleRate*dur);
+    const buf=c.createBuffer(1,sz,c.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<sz;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(sz*0.3));
+    const f=c.createBiquadFilter(); f.type='bandpass'; f.frequency.value=freq;
+    const g=c.createGain(); g.gain.setValueAtTime(vol,c.currentTime); g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+    const s=c.createBufferSource(); s.buffer=buf;
+    s.connect(f); f.connect(g); g.connect(c.destination); s.start(); s.stop(c.currentTime+dur+0.02);
+  } catch(e){}
+};
+const sfx = {
+  click:    ()=>noise(2200,0.018,0.45),
+  thud:     ()=>{ osc(70,0.2,'sine',0.3); noise(200,0.05,0.2); },
+  play:     ()=>{ noise(2200,0.018,0.4); setTimeout(()=>osc(330,0.15,'triangle',0.12),35); },
+  stop:     ()=>{ osc(80,0.18,'sine',0.28); noise(200,0.05,0.18); },
+  rew:      ()=>[900,650,400,260].forEach((f,i)=>setTimeout(()=>osc(f,0.07,'sawtooth',0.11),i*40)),
+  ff:       ()=>[260,400,650,900].forEach((f,i)=>setTimeout(()=>osc(f,0.07,'sawtooth',0.11),i*40)),
+  eject:    ()=>{ noise(600,0.05,0.35); [500,580,440,600].forEach((f,i)=>setTimeout(()=>noise(f,0.04,0.15),i*55+55)); },
+  knob:     ()=>noise(600+Math.random()*400,0.025,0.09),
+  modeBtn:  ()=>noise(1800,0.022,0.28),
+  powerOn:  ()=>[110,165,220,330,440].forEach((f,i)=>setTimeout(()=>osc(f,0.2,'sine',0.11),i*80)),
+  powerOff: ()=>[440,330,220,165,110].forEach((f,i)=>setTimeout(()=>osc(f,0.16,'sine',0.09),i*70)),
+};
+
+// ── STATE ─────────────────────────────────────────────────────
+let powered=false, playing=false, paused=false, cassetteOpen=false;
+let mode='FM', freq=92;
+let reelAngle=0, reelRaf=null, vuRaf=null, scrollRaf=null;
+let vuL=0, vuR=0;
+let position=0, duration=1, trackIndex=0, trackCount=0, trackName='';
+let scReady=false;
+let knobVals={ vol:60, bal:0, tone:0, level:60 };
+let knobDrag=null;
+
+// ── TUNER MARKS ───────────────────────────────────────────────
+function buildTunerMarks() {
+  const marks = mode==='FM'
+    ? [76,78,80,82,84,86,88,90,92,94,96,98,100,102,104,106,108]
+    : [530,600,700,800,900,1000,1100,1200,1400,1600];
+  const container = document.getElementById('tuner-marks');
+  container.innerHTML = '';
+  marks.forEach((f,i) => {
+    const d = document.createElement('div');
+    d.className = 'tmark';
+    const line = document.createElement('div');
+    line.className = 'tmark-line';
+    line.style.height = (i%2===0?'9px':'5px');
+    d.appendChild(line);
+    if(i%2===0){
+      const lbl = document.createElement('span');
+      lbl.className = 'tmark-label';
+      lbl.textContent = mode==='FM' ? f : f>=1000 ? (f/1000)+'K' : f;
+      d.appendChild(lbl);
+    }
+    container.appendChild(d);
+  });
+  document.getElementById('tuner-label').textContent = mode==='FM' ? 'FM  AFC' : 'AM';
+  updateNeedle();
+}
+
+function updateNeedle() {
+  const [min,max] = mode==='FM' ? [76,108] : [530,1600];
+  const pct = (freq-min)/(max-min);
+  const needle = document.getElementById('needle');
+  needle.style.left = (10 + pct*80) + '%';
+  needle.style.display = powered ? 'block' : 'none';
+}
+
+// ── LCD ───────────────────────────────────────────────────────
+let scrollPos=0, scrollDir=1;
+function fmtTime(ms){
+  const s=Math.floor(ms/1000);
+  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+function updateLCD() {
+  const line1 = !powered ? '- - - - - - - -'
+    : !scReady ? 'CONNECTING...'
+    : trackName || 'DARIN NOVAK';
+  const line2 = !powered || !scReady ? ''
+    : (playing||paused) ? fmtTime(position)+' / '+fmtTime(duration)+'  ['+trackIndex+'/'+trackCount+']'
+    : trackCount+' TRACKS READY';
+
+  document.getElementById('lcd-scroll').textContent = line1;
+  document.getElementById('lcd-line2').textContent = line2;
+  document.getElementById('lcd').classList.toggle('powered', powered);
+
+  // progress bar
+  const pct = duration>0 ? (position/duration)*100 : 0;
+  document.getElementById('progress-bar').style.width = pct+'%';
+}
+
+function startScroll() {
+  cancelAnimationFrame(scrollRaf);
+  scrollPos = 0;
+  const el = document.getElementById('lcd-scroll');
+  let tick = 0;
+  const loop = () => {
+    tick++;
+    if(tick > 80) { // delay before scroll starts
+      const w = el.offsetWidth;
+      const maxScroll = Math.max(0, w - 200);
+      if(maxScroll > 0) {
+        scrollPos += 0.5;
+        if(scrollPos > maxScroll + 30) scrollPos = -20;
+        el.style.transform = 'translateX(-'+scrollPos+'px)';
+      }
+    }
+    scrollRaf = requestAnimationFrame(loop);
+  };
+  scrollRaf = requestAnimationFrame(loop);
+}
+
+// ── REELS ─────────────────────────────────────────────────────
+function setReelAngle(angle) {
+  const deg = angle;
+  const cosDeg = a => Math.cos(a*Math.PI/180);
+  const sinDeg = a => Math.sin(a*Math.PI/180);
+  [[0,120,240], [0,120,240]].forEach((arms, ri) => {
+    const prefix = ri===0 ? 'rl' : 'rr';
+    const scale = ri===0 ? 1 : -0.7;
+    arms.forEach((base, i) => {
+      const a = base + angle * (ri===0?1:scale);
+      const x2 = cosDeg(a)*15, y2 = sinDeg(a)*15;
+      const el = document.getElementById(prefix+i);
+      if(el){ el.setAttribute('x2',x2.toFixed(2)); el.setAttribute('y2',y2.toFixed(2)); }
+    });
+  });
+}
+
+function startReels() {
+  cancelAnimationFrame(reelRaf);
+  const loop = () => {
+    reelAngle = (reelAngle + 2.5) % 360;
+    setReelAngle(reelAngle);
+    reelRaf = requestAnimationFrame(loop);
+  };
+  reelRaf = requestAnimationFrame(loop);
+}
+function stopReels() { cancelAnimationFrame(reelRaf); reelRaf=null; }
+
+// ── VU METERS ─────────────────────────────────────────────────
+function buildVU(id) {
+  const container = document.getElementById(id);
+  container.innerHTML = '';
+  for(let i=0;i<12;i++){
+    const seg = document.createElement('div');
+    seg.className = 'vu-seg';
+    seg.style.width = '5px';
+    seg.style.height = (4+i*1.1)+'px';
+    seg.style.background = '#2a1010';
+    container.appendChild(seg);
+  }
+}
+function updateVU(id, level) {
+  const segs = document.getElementById(id).children;
+  for(let i=0;i<segs.length;i++){
+    const lit = powered && playing && !paused && level>(i+1)/12;
+    const color = i<7?'#dd1100':i<10?'#ee8800':'#ffdd00';
+    segs[i].style.background = lit ? color : '#2a1010';
+    segs[i].style.boxShadow = lit ? '0 0 3px '+color+'88' : 'none';
+  }
+}
+function startVU() {
+  cancelAnimationFrame(vuRaf);
+  const loop = () => {
+    vuL = Math.random()*0.78+0.1;
+    vuR = Math.random()*0.78+0.1;
+    updateVU('vu-l', vuL);
+    updateVU('vu-r', vuR);
+    vuRaf = requestAnimationFrame(loop);
+  };
+  vuRaf = requestAnimationFrame(loop);
+}
+function stopVU() {
+  cancelAnimationFrame(vuRaf);
+  updateVU('vu-l', 0);
+  updateVU('vu-r', 0);
+}
+
+// ── KNOBS ─────────────────────────────────────────────────────
+function vDeg(v){ return ((v/100)*270)-135; }
+function sDeg(v){ return (((v+100)/200)*270)-135; }
+function setKnobRotation(id, deg){
+  document.getElementById('knob-'+id).style.transform = 'rotate('+deg+'deg)';
+}
+function updateAllKnobs(){
+  setKnobRotation('vol',   vDeg(knobVals.vol));
+  setKnobRotation('bal',   sDeg(knobVals.bal));
+  setKnobRotation('tone',  sDeg(knobVals.tone));
+  setKnobRotation('level', vDeg(knobVals.level));
+}
+
+document.querySelectorAll('.knob').forEach(knob => {
+  const startDrag = (e) => {
+    e.preventDefault();
+    const y = e.clientY ?? e.touches?.[0]?.clientY;
+    const key = knob.dataset.key;
+    knobDrag = { key, startY:y, startVal:knobVals[key] };
+  };
+  knob.addEventListener('mousedown', startDrag);
+  knob.addEventListener('touchstart', startDrag, {passive:false});
+});
+window.addEventListener('mousemove', e => {
+  if(!knobDrag) return;
+  const y = e.clientY;
+  const delta = (knobDrag.startY - y) * 1.2;
+  const { key, startVal } = knobDrag;
+  const isVol = key==='vol'||key==='level';
+  const nv = isVol ? Math.max(0,Math.min(100,startVal+delta*0.5)) : Math.max(-100,Math.min(100,startVal+delta));
+  knobVals[key] = nv;
+  updateAllKnobs();
+  sfx.knob();
+});
+window.addEventListener('touchmove', e => {
+  if(!knobDrag) return;
+  const y = e.touches[0].clientY;
+  const delta = (knobDrag.startY - y) * 1.2;
+  const { key, startVal } = knobDrag;
+  const isVol = key==='vol'||key==='level';
+  const nv = isVol ? Math.max(0,Math.min(100,startVal+delta*0.5)) : Math.max(-100,Math.min(100,startVal+delta));
+  knobVals[key] = nv;
+  updateAllKnobs();
+  sfx.knob();
+}, {passive:false});
+window.addEventListener('mouseup', () => { knobDrag=null; });
+window.addEventListener('touchend', () => { knobDrag=null; });
+
+// ── TUNER CLICK ───────────────────────────────────────────────
+document.getElementById('tuner').addEventListener('click', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = (e.clientX - rect.left) / rect.width;
+  const [min,max] = mode==='FM' ? [76,108] : [530,1600];
+  freq = Math.max(min, Math.min(max, min + x*(max-min)));
+  updateNeedle();
+  sfx.click();
+});
+
+// ── MODE BUTTONS ──────────────────────────────────────────────
+function setMode(newMode) {
+  mode = newMode;
+  document.getElementById('mbtn-tape').className  = 'mbtn ' + (mode==='TAPE'?'on':'off');
+  document.getElementById('mbtn-radio').className = 'mbtn ' + (mode!=='TAPE'?'on':'off');
+  document.getElementById('mbtn-fm').className    = 'mbtn ' + (mode==='FM'?'on':'off');
+  document.getElementById('mbtn-am').className    = 'mbtn ' + (mode==='AM'?'on':'off');
+  buildTunerMarks();
+}
+document.getElementById('mbtn-stereo').addEventListener('click', sfx.modeBtn);
+document.getElementById('mbtn-mono').addEventListener('click', sfx.modeBtn);
+document.getElementById('mbtn-tape').addEventListener('click', () => { sfx.modeBtn(); setMode('TAPE'); });
+document.getElementById('mbtn-radio').addEventListener('click', () => { sfx.modeBtn(); setMode('FM'); });
+document.getElementById('mbtn-fm').addEventListener('click', () => { sfx.modeBtn(); setMode('FM'); freq=92; updateNeedle(); });
+document.getElementById('mbtn-am').addEventListener('click', () => { sfx.modeBtn(); setMode('AM'); freq=1000; updateNeedle(); });
+
+// ── POWER ─────────────────────────────────────────────────────
+function setPowered(on) {
+  powered = on;
+  const btn = document.getElementById('power-btn');
+  const lbl = document.getElementById('power-label');
+  btn.className = on ? 'on' : 'off';
+  lbl.textContent = on ? 'ON' : 'OFF';
+  lbl.style.color = on ? '#cc0000' : '#999';
+  document.getElementById('needle').style.display = on ? 'block' : 'none';
+  updateLCD();
+}
+document.getElementById('power-btn').addEventListener('click', () => {
+  if(!powered){ sfx.powerOn(); setPowered(true); }
+  else { sfx.powerOff(); doStop(); setPowered(false); }
+});
+
+// ── SC STATUS ─────────────────────────────────────────────────
+function setScStatus(ready) {
+  scReady = ready;
+  const dot = document.getElementById('sc-dot');
+  const lbl = document.getElementById('sc-label');
+  dot.className = ready ? 'live' : '';
+  lbl.className = ready ? 'live' : '';
+  lbl.textContent = ready ? 'SC LIVE' : 'SC';
+  if(ready) {
+    ['btn-rew','btn-ff','btn-stop','btn-play','btn-pause'].forEach(id => {
+      document.getElementById(id).disabled = false;
+    });
+  }
+  updateLCD();
+}
+
+// ── SOUNDCLOUD ────────────────────────────────────────────────
+let widget;
+window.addEventListener('load', () => {
+  const iframe = document.getElementById('sc-iframe');
+  widget = SC.Widget(iframe);
+  const E = SC.Widget.Events;
+
+  widget.bind(E.READY, () => {
+    widget.getSounds(sounds => { trackCount = sounds?.length || 0; });
+    setScStatus(true);
+  });
+  widget.bind(E.PLAY, () => {
+    playing=true; paused=false;
+    widget.getCurrentSound(s => { if(s){ trackName=s.title; updateLCD(); startScroll(); } });
+    widget.getDuration(d => { duration=d; updateLCD(); });
+    widget.getCurrentSoundIndex(i => { trackIndex=i+1; updateLCD(); });
+    startReels(); startVU();
+    document.getElementById('rec-dot').style.display='block';
+    document.getElementById('btn-play').classList.add('active');
+    document.getElementById('btn-pause').classList.remove('active');
+  });
+  widget.bind(E.PAUSE, () => {
+    playing=false; paused=true;
+    stopReels(); stopVU();
+    document.getElementById('rec-dot').style.display='none';
+    document.getElementById('btn-play').classList.remove('active');
+    document.getElementById('btn-pause').classList.add('active');
+    updateLCD();
+  });
+  widget.bind(E.FINISH, () => {
+    playing=false; paused=false; position=0;
+    stopReels(); stopVU();
+    document.getElementById('rec-dot').style.display='none';
+    document.getElementById('btn-play').classList.remove('active');
+    document.getElementById('btn-pause').classList.remove('active');
+    updateLCD();
+  });
+  widget.bind(E.PLAY_PROGRESS, e => {
+    position = e.currentPosition;
+    updateLCD();
+  });
+});
+
+// ── TRANSPORT ────────────────────────────────────────────────
+function doPlay()  { sfx.play();  widget?.play(); }
+function doPause() { sfx.click(); if(playing&&!paused) widget?.pause(); else widget?.play(); }
+function doStop()  {
+  sfx.stop();
+  widget?.seekTo(0); widget?.pause();
+  playing=false; paused=false; position=0;
+  stopReels(); stopVU();
+  cancelAnimationFrame(scrollRaf);
+  document.getElementById('lcd-scroll').style.transform='translateX(0)';
+  document.getElementById('rec-dot').style.display='none';
+  document.getElementById('btn-play').classList.remove('active');
+  document.getElementById('btn-pause').classList.remove('active');
+  updateLCD();
+}
+function doNext() { sfx.ff();  widget?.next(); }
+function doPrev() { sfx.rew(); widget?.prev(); }
+function doEject() {
+  sfx.eject();
+  cassetteOpen = !cassetteOpen;
+  const door = document.getElementById('cassette-door');
+  const empty = document.getElementById('cassette-empty');
+  door.style.transform = cassetteOpen
+    ? 'perspective(250px) rotateX(-95deg)'
+    : 'perspective(250px) rotateX(0deg)';
+  empty.style.opacity = cassetteOpen ? '1' : '0';
+  document.getElementById('btn-eject').classList.toggle('active', cassetteOpen);
+  if(playing) doStop();
+}
+
+document.getElementById('btn-play').addEventListener('click',  doPlay);
+document.getElementById('btn-pause').addEventListener('click', doPause);
+document.getElementById('btn-stop').addEventListener('click',  doStop);
+document.getElementById('btn-ff').addEventListener('click',    doNext);
+document.getElementById('btn-rew').addEventListener('click',   doPrev);
+document.getElementById('btn-eject').addEventListener('click', doEject);
+document.getElementById('btn-rec').addEventListener('click',   sfx.click);
+
+// ── INIT ──────────────────────────────────────────────────────
+buildVU('vu-l');
+buildVU('vu-r');
+buildTunerMarks();
+updateAllKnobs();
+updateLCD();
+setReelAngle(0);
+</script>
+</body>
+</html>
