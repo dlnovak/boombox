@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -42,7 +42,6 @@ button:focus { outline:none; }
 /* ── TUNER ── */
 #row-tuner { display:flex; gap:6px; align-items:center; }
 .tweeter { width:32px; height:32px; flex-shrink:0; border-radius:50%; border:2px solid #aaa; box-shadow:inset 0 2px 5px rgba(0,0,0,0.35),0 0 0 3px #c8c8c8,0 0 0 4px #aaa; background:#1a1a1a; background-image:radial-gradient(circle,#080808 2px,transparent 2px); background-size:6px 6px; background-position:3px 3px; }
-#tuner { flex:1; height:44px; cursor:pointer; background:linear-gradient(180deg,#c4dcee 0%,#aecce6 50%,#b8d6ec 100%); border:1px solid #88aac8; border-radius:3px; position:relative; overflow:visible; box-shadow:inset 0 1px 4px rgba(0,0,0,0.15),0 1px 0 rgba(255,255,255,0.9); }
 #tuner-label { position:absolute; top:3px; left:8px; font-size:8px; color:#223; font-family:monospace; font-weight:bold; letter-spacing:1px; }
 #tuner-marks { position:absolute; bottom:0; left:8px; right:8px; display:flex; justify-content:space-between; align-items:flex-end; }
 .tmark { display:flex; flex-direction:column; align-items:center; }
@@ -52,9 +51,15 @@ button:focus { outline:none; }
 #needle::before { content:''; position:absolute; top:1px; left:-3px; border-left:4px solid transparent; border-right:4px solid transparent; border-top:7px solid #cc0000; }
 #tuner-glare { position:absolute; top:0; left:0; right:0; height:40%; background:linear-gradient(180deg,rgba(255,255,255,0.38),transparent); pointer-events:none; }
 #station-popup { position:absolute; top:-24px; left:50%; transform:translateX(-50%); background:#1a2a3a; color:#88ccee; font-family:monospace; font-size:8px; padding:2px 8px; border-radius:3px; white-space:nowrap; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:20; border:1px solid #2a3a4a; }
-#station-popup.show { opacity:1; }
+/* TUNER BACKLIGHT */
+#tuner { flex:1; height:44px; cursor:pointer; background:linear-gradient(180deg,#b0b8c0 0%,#a0aab4 50%,#a8b4bc 100%); border:1px solid #88aac8; border-radius:3px; position:relative; overflow:visible; box-shadow:inset 0 1px 4px rgba(0,0,0,0.3),0 1px 0 rgba(255,255,255,0.9); transition:background 0.4s, box-shadow 0.4s; }
+#tuner.lit { background:linear-gradient(180deg,#c8dff0 0%,#aecce6 50%,#b8d6ec 100%); box-shadow:inset 0 1px 4px rgba(0,0,0,0.1), 0 0 12px rgba(140,200,255,0.4), 0 1px 0 rgba(255,255,255,0.9); }
 
-/* ── KNOB ROW ── */
+/* PRESET BUTTONS */
+#row-presets { display:flex; gap:3px; flex-shrink:0; }
+.pbtn { flex:1; height:22px; border-radius:2px; border:1px solid #999; background:linear-gradient(180deg,#e0e0e0 0%,#c8c8c8 100%); color:#444; font-family:monospace; font-size:6px; letter-spacing:0.5px; box-shadow:0 1px 3px rgba(0,0,0,0.15),inset 0 1px 0 rgba(255,255,255,0.7); transition:all 0.06s; user-select:none; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 2px; }
+.pbtn:active,.pbtn.active { background:linear-gradient(180deg,#aaa,#c8c8c8); box-shadow:inset 0 2px 4px rgba(0,0,0,0.25); transform:translateY(1px); }
+.pbtn:disabled { opacity:0.35; cursor:default; }
 #row-knobs { display:flex; gap:6px; align-items:center; background:rgba(0,0,0,0.05); border-radius:4px; padding:3px 6px; }
 .knob-wrap { display:flex; flex-direction:column; align-items:center; gap:2px; }
 .knob { border-radius:50%; cursor:ns-resize; position:relative; user-select:none; background:radial-gradient(circle at 36% 28%,#f4f4f4 0%,#bbb 50%,#888 100%); box-shadow:0 3px 7px rgba(0,0,0,0.3),inset 0 1px 3px rgba(255,255,255,0.8),0 0 0 2px #aaa; flex-shrink:0; }
@@ -95,83 +100,153 @@ button:focus { outline:none; }
 /* Real cassette ratio is about 100:64 (w:h) */
 #cassette-window {
   flex:1;
-  border:2px solid #aaa;
+  border:3px solid #a8a8a4;
   border-radius:5px;
   position:relative;
   overflow:hidden;
-  box-shadow:inset 0 2px 6px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.3);
-  /* dark interior showing through */
-  background:#1c1610;
+  background:#111;
+  box-shadow:
+    0 0 0 1px #e0e0dc,
+    inset 0 3px 10px rgba(0,0,0,0.8),
+    0 2px 6px rgba(0,0,0,0.3);
 }
 
-/* Interior scene — reels and label */
+/* Interior — dark cassette shell */
 #cassette-interior {
   position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:space-around;
-  padding:4px 10px;
-  background:linear-gradient(180deg,#2a2016 0%,#1c1610 60%,#141008 100%);
+  background:#1a1a1a;
+  border-radius:3px;
 }
 
-/* Tape path line */
-#tape-path {
-  position:absolute;
-  bottom:22%; left:12%; right:12%;
-  height:2px;
-  background:rgba(60,40,10,0.7);
-  z-index:2; border-radius:1px;
-}
-/* small tape guides */
-#tape-path::before { content:''; position:absolute; left:8%; top:-3px; width:4px; height:8px; background:#3a2a10; border-radius:1px; }
-#tape-path::after  { content:''; position:absolute; right:8%; top:-3px; width:4px; height:8px; background:#3a2a10; border-radius:1px; }
-
-/* Cassette body outline (the plastic shell) */
-#cassette-body {
-  position:absolute;
-  inset:8% 6%;
-  border-radius:4px;
-  border:1px solid rgba(80,60,20,0.5);
-  background:linear-gradient(180deg,rgba(200,180,100,0.08) 0%,rgba(160,140,80,0.05) 100%);
-  pointer-events:none; z-index:1;
-}
-/* cassette label strip */
+/* FULL-WIDTH LABEL — like a real cassette, covers the whole face */
 #cassette-label-strip {
   position:absolute;
-  top:10%; left:25%; right:25%;
-  height:35%;
-  background:linear-gradient(180deg,#c8a840 0%,#b89030 100%);
-  border-radius:2px;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
-  z-index:3;
-  box-shadow:0 1px 4px rgba(0,0,0,0.5);
+  top:4%; left:4%; right:4%; bottom:30%;
+  background:linear-gradient(180deg,#f0eeea 0%,#e2e0da 100%);
+  border-radius:3px 3px 2px 2px;
+  z-index:2;
+  box-shadow:0 2px 5px rgba(0,0,0,0.5);
+  overflow:hidden;
 }
-.cs-brand { font-size:11px; color:#1a1000; font-family:Georgia,serif; font-weight:bold; letter-spacing:2px; text-shadow:0 1px 0 rgba(255,255,255,0.2); }
-.cs-sub   { font-size:5px; color:#3a2000; font-family:monospace; letter-spacing:2px; }
-#rec-dot  { width:5px; height:5px; border-radius:50%; background:#ff2200; box-shadow:0 0 5px #ff2200; margin-top:1px; display:none; animation:recBlink 0.8s ease-in-out infinite; }
+/* top color band on label */
+#cassette-label-strip::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:22%;
+  background:linear-gradient(180deg,#1a1a1a 0%,#2a2a2a 100%);
+}
+/* bottom name strip */
+#cassette-label-strip::after {
+  content:'';
+  position:absolute; bottom:0; left:0; right:0; height:30%;
+  background:linear-gradient(180deg,#e2e0da,#d0cec8);
+  border-top:1px solid #bbb;
+}
+/* left reel hole cutout */
+.reel-hole-l {
+  position:absolute;
+  top:15%; left:12%;
+  width:32%; aspect-ratio:1;
+  border-radius:50%;
+  background:#1a1a1a;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.9), 0 0 0 1px #333;
+  z-index:3;
+  overflow:hidden;
+}
+/* right reel hole cutout */
+.reel-hole-r {
+  position:absolute;
+  top:15%; right:12%;
+  width:32%; aspect-ratio:1;
+  border-radius:50%;
+  background:#1a1a1a;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.9), 0 0 0 1px #333;
+  z-index:3;
+  overflow:hidden;
+}
+/* canvases sit inside the reel holes */
+.reel-hole-l canvas,
+.reel-hole-r canvas {
+  width:100%; height:100%;
+}
 
-/* FROSTED DOOR — very light tint, mostly see-through */
+/* Name text on label */
+.cs-name {
+  position:absolute;
+  bottom:8%; left:0; right:0;
+  text-align:center;
+  font-size:8px; font-family:monospace;
+  color:#333; letter-spacing:1.5px;
+  z-index:4; text-transform:uppercase;
+}
+.cs-sub {
+  position:absolute;
+  top:5%; left:0; right:0;
+  text-align:center;
+  font-size:5.5px; font-family:monospace;
+  color:#aaa; letter-spacing:2px;
+  z-index:4;
+}
+#rec-dot { width:5px; height:5px; border-radius:50%; background:#ff2200; box-shadow:0 0 5px #ff2200; display:none; animation:recBlink 0.8s ease-in-out infinite; position:absolute; bottom:28%; left:50%; transform:translateX(-50%); z-index:5; }
+
+/* TAPE visible at bottom of cassette */
+#tape-path {
+  position:absolute;
+  bottom:0; left:0; right:0; height:30%;
+  background:#1a1a1a;
+  z-index:3;
+}
+/* tape strip */
+#tape-path::before {
+  content:'';
+  position:absolute; top:22%; left:8%; right:8%; height:35%;
+  background:linear-gradient(180deg,#4a2800 0%,#351b00 50%,#221100 100%);
+  border-radius:1px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.9), inset 0 1px 0 rgba(120,60,0,0.2);
+}
+/* capstan/head opening */
+#tape-path::after {
+  content:'';
+  position:absolute; top:10%; left:50%; transform:translateX(-50%);
+  width:18%; height:70%;
+  background:#111;
+  border-radius:1px;
+  border:1px solid #333;
+}
+
+/* Cassette body */
+#cassette-body {
+  position:absolute; inset:4%;
+  border-radius:3px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:transparent;
+  pointer-events:none; z-index:1;
+}
+
+/* DOOR — body color frame with clear window in center */
 #cassette-door {
   position:absolute; inset:0;
-  /* nearly transparent frosted plastic */
-  background:rgba(210,208,200,0.28);
-  backdrop-filter:blur(1px);
-  -webkit-backdrop-filter:blur(1px);
-  transform-origin:top center;
-  transform:perspective(220px) rotateX(0deg);
-  transition:transform 0.44s cubic-bezier(0.4,0,0.2,1);
+  background:transparent;
+  transform:translateY(0%);
+  transition:transform 0.38s cubic-bezier(0.4,0,0.2,1);
   border-radius:3px; z-index:10;
   display:flex; align-items:center; justify-content:center;
-  border:1px solid rgba(220,218,210,0.5);
+  /* thick inset shadow creates the door frame, center stays transparent */
+  box-shadow:
+    inset 0 0 0 10px #d8d8d4,
+    inset 0 10px 0 11px #e2e2de,
+    inset 0 -10px 0 11px #cacac6,
+    0 0 0 1px #b8b8b4;
 }
-/* top hinge edge */
-#cassette-door::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:rgba(200,198,190,0.7); border-radius:3px 3px 0 0; }
-/* light glare stripe */
-#cassette-door::after  { content:''; position:absolute; top:0; left:0; right:0; height:35%; background:linear-gradient(180deg,rgba(255,255,255,0.18),transparent); border-radius:3px; pointer-events:none; }
+/* chrome top edge of door */
+#cassette-door::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(180deg,rgba(200,200,195,0.7),rgba(150,150,145,0.4)); border-radius:3px 3px 0 0; }
+/* glare */
+#cassette-door::after  { content:''; position:absolute; top:0; left:0; right:0; height:30%; background:linear-gradient(180deg,rgba(255,255,255,0.12),transparent); border-radius:3px; pointer-events:none; }
 /* horizontal ribs */
-.door-ribs { position:absolute; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 6px,rgba(255,255,255,0.06) 6px,rgba(255,255,255,0.06) 7px); border-radius:3px; pointer-events:none; }
-.door-label { display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; z-index:1; opacity:0.5; }
-.door-label span  { font-size:8px; color:rgba(60,58,50,0.8); font-family:monospace; letter-spacing:3px; }
-.door-label hr    { width:36px; border:none; border-top:1px solid rgba(120,118,110,0.5); }
-.door-label small { font-size:6px; color:rgba(80,78,70,0.7); font-family:monospace; }
+.door-ribs { position:absolute; inset:0; background:repeating-linear-gradient(0deg,transparent,transparent 8px,rgba(255,255,255,0.04) 8px,rgba(255,255,255,0.04) 9px); border-radius:3px; pointer-events:none; }
+.door-label { display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; z-index:1; opacity:0.35; }
+.door-label span  { font-size:8px; color:rgba(220,220,215,0.9); font-family:monospace; letter-spacing:3px; }
+.door-label hr    { width:36px; border:none; border-top:1px solid rgba(200,200,195,0.4); }
+.door-label small { font-size:6px; color:rgba(200,200,195,0.7); font-family:monospace; }
 
 /* LCD */
 #lcd { background:#090906; border:1px solid #131306; border-radius:4px; padding:4px 8px; box-shadow:inset 0 0 8px rgba(0,0,0,0.8); flex-shrink:0; }
@@ -269,20 +344,17 @@ button:focus { outline:none; }
      <!-- CASSETTE -->
      <div id="cassette-window">
       <div id="cassette-interior">
-       <canvas id="reel-l-canvas" width="64" height="64"></canvas>
        <div id="cassette-label-strip">
-        <span class="cs-brand">NOVAK</span>
-        <span class="cs-sub">HI-FI · C90</span>
-        <div id="rec-dot"></div>
+        <span class="cs-sub">HIGH BIAS TYPE II</span>
+        <div class="reel-hole-l"><canvas id="reel-l-canvas" width="80" height="80"></canvas></div>
+        <div class="reel-hole-r"><canvas id="reel-r-canvas" width="80" height="80"></canvas></div>
+        <span class="cs-name">Darin Novak Music</span>
        </div>
-       <canvas id="reel-r-canvas" width="64" height="64"></canvas>
+       <div id="cassette-body"></div>
+       <div id="tape-path"></div>
+       <div id="rec-dot"></div>
       </div>
-      <div id="cassette-body"></div>
-      <div id="tape-path"></div>
-      <div id="cassette-door">
-       <div class="door-ribs"></div>
-       <div class="door-label"><span>CASSETTE</span><hr><small>SOFT TOUCH</small></div>
-      </div>
+      <div id="cassette-door"></div>
      </div>
 
      <!-- LCD -->
@@ -294,6 +366,20 @@ button:focus { outline:none; }
     </div>
 
     <div class="speaker-wrap"><div class="speaker-outer"><div class="speaker-inner"></div></div></div>
+   </div>
+
+   <!-- PRESETS -->
+   <div id="row-presets">
+    <button class="pbtn" id="pbtn-0">KEXP 88.5</button>
+    <button class="pbtn" id="pbtn-1">GROOVE 90.3</button>
+    <button class="pbtn" id="pbtn-2">PARADISE 91.1</button>
+    <button class="pbtn" id="pbtn-3">INDIE 93.7</button>
+    <button class="pbtn" id="pbtn-4">DRONE 95.5</button>
+    <button class="pbtn" id="pbtn-5">SPACE 97.9</button>
+    <button class="pbtn" id="pbtn-6">LUSH 99.5</button>
+    <button class="pbtn" id="pbtn-7">COVERS 101</button>
+    <button class="pbtn" id="pbtn-8">SYN 103.3</button>
+    <button class="pbtn" id="pbtn-9">DEEP 105.7</button>
    </div>
 
    <!-- TRANSPORT -->
@@ -410,9 +496,11 @@ function tuneRadio(){
   const st=nearestSt(freq);
   radioAudio.pause();radioAudio.src='';radioPlaying=false;stopVU();document.getElementById('rec-dot').style.display='none';
   if(st&&powered){
+    setupAudioChain();
+    if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
     updateLCD2('TUNING '+st.name+'...');
     radioAudio.src=st.url;
-    radioAudio.play().then(()=>{radioPlaying=true;startVU();document.getElementById('rec-dot').style.display='block';updateLCD();}).catch(()=>{radioPlaying=false;updateLCD2('SIGNAL LOST');});
+    radioAudio.play().then(()=>{radioPlaying=true;applyKnobs();startVU();document.getElementById('rec-dot').style.display='block';updateLCD();}).catch(()=>{radioPlaying=false;updateLCD2('SIGNAL LOST');});
   }else{updateLCD();}
 }
 radioAudio.addEventListener('error',()=>{radioPlaying=false;stopVU();updateLCD2('STREAM ERROR');});
@@ -434,13 +522,70 @@ function updateLCD2(msg){document.getElementById('lcd-line2').textContent=msg;}
 function startScroll(){cancelAnimationFrame(scrollRaf);scrollPos=0;const el=document.getElementById('lcd-scroll');let tick=0;const loop=()=>{tick++;if(tick>80){const w=el.offsetWidth,max=Math.max(0,w-200);if(max>0){scrollPos+=0.5;if(scrollPos>max+30)scrollPos=-20;el.style.transform='translateX(-'+scrollPos+'px)';}}scrollRaf=requestAnimationFrame(loop);};scrollRaf=requestAnimationFrame(loop);}
 function stopScroll(){cancelAnimationFrame(scrollRaf);document.getElementById('lcd-scroll').style.transform='translateX(0)';}
 
-// KNOBS
-function vDeg(v){return((v/100)*270)-135;}function sDeg(v){return(((v+100)/200)*270)-135;}
+// KNOBS — Web Audio nodes for FM
+let audioCtx=null,audioSrc=null,pannerNode=null,filterNode=null,gainNode=null;
+function setupAudioChain(){
+  if(audioCtx)return;
+  audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  audioSrc=audioCtx.createMediaElementSource(radioAudio);
+  gainNode=audioCtx.createGain();
+  pannerNode=audioCtx.createStereoPanner();
+  filterNode=audioCtx.createBiquadFilter();
+  filterNode.type='lowshelf'; filterNode.frequency.value=1000;
+  audioSrc.connect(filterNode);filterNode.connect(pannerNode);pannerNode.connect(gainNode);gainNode.connect(audioCtx.destination);
+}
+function applyKnobs(){
+  if(mode==='FM'&&audioCtx){
+    gainNode.gain.value=knobVals.vol/100;
+    pannerNode.pan.value=knobVals.bal/100;
+    filterNode.gain.value=(knobVals.tone/100)*18;
+  }
+  if(mode==='TAPE'&&widget){
+    widget.setVolume(knobVals.vol);
+  }
+}
+
+// LCD error flash
+let errTimer=null;
+function lcdError(msg){
+  const el=document.getElementById('lcd-line2');
+  el.textContent='⚠ '+msg;
+  el.style.color='#ff4400';
+  clearTimeout(errTimer);
+  errTimer=setTimeout(()=>{el.style.color='';updateLCD();},2200);
+}
+
+function vDeg(v){return((v/100)*270)-135;}
+function sDeg(v){return(((v+100)/200)*270)-135;}
 function updateAllKnobs(){document.querySelectorAll('.knob').forEach(k=>{const key=k.dataset.key;k.style.transform='rotate('+(key==='vol'||key==='level'?vDeg(knobVals[key]):sDeg(knobVals[key]))+'deg)';});}
-document.querySelectorAll('.knob').forEach(k=>{const sd=e=>{e.preventDefault();const y=e.clientY??e.touches?.[0]?.clientY;knobDrag={key:k.dataset.key,startY:y,startVal:knobVals[k.dataset.key]};};k.addEventListener('mousedown',sd);k.addEventListener('touchstart',sd,{passive:false});});
-window.addEventListener('mousemove',e=>{if(!knobDrag)return;const d=(knobDrag.startY-e.clientY)*1.2;const isV=knobDrag.key==='vol'||knobDrag.key==='level';knobVals[knobDrag.key]=isV?Math.max(0,Math.min(100,knobDrag.startVal+d*0.5)):Math.max(-100,Math.min(100,knobDrag.startVal+d));updateAllKnobs();sfx.knob();});
-window.addEventListener('touchmove',e=>{if(!knobDrag)return;const d=(knobDrag.startY-e.touches[0].clientY)*1.2;const isV=knobDrag.key==='vol'||knobDrag.key==='level';knobVals[knobDrag.key]=isV?Math.max(0,Math.min(100,knobDrag.startVal+d*0.5)):Math.max(-100,Math.min(100,knobDrag.startVal+d));updateAllKnobs();sfx.knob();},{passive:false});
-window.addEventListener('mouseup',()=>{knobDrag=null;});window.addEventListener('touchend',()=>{knobDrag=null;});
+
+document.querySelectorAll('.knob').forEach(k=>{
+  const sd=e=>{
+    e.preventDefault();
+    const key=k.dataset.key;
+    // block bal/tone in tape mode
+    if(mode==='TAPE'&&(key==='bal'||key==='tone')){lcdError('NOT AVAILABLE IN TAPE MODE');return;}
+    const y=e.clientY??e.touches?.[0]?.clientY;
+    knobDrag={key,startY:y,startVal:knobVals[key]};
+  };
+  k.addEventListener('mousedown',sd);k.addEventListener('touchstart',sd,{passive:false});
+});
+window.addEventListener('mousemove',e=>{
+  if(!knobDrag)return;
+  const d=(knobDrag.startY-e.clientY)*1.2;
+  const isV=knobDrag.key==='vol'||knobDrag.key==='level';
+  knobVals[knobDrag.key]=isV?Math.max(0,Math.min(100,knobDrag.startVal+d*0.5)):Math.max(-100,Math.min(100,knobDrag.startVal+d));
+  updateAllKnobs();applyKnobs();sfx.knob();
+});
+window.addEventListener('touchmove',e=>{
+  if(!knobDrag)return;
+  const d=(knobDrag.startY-e.touches[0].clientY)*1.2;
+  const isV=knobDrag.key==='vol'||knobDrag.key==='level';
+  knobVals[knobDrag.key]=isV?Math.max(0,Math.min(100,knobDrag.startVal+d*0.5)):Math.max(-100,Math.min(100,knobDrag.startVal+d));
+  updateAllKnobs();applyKnobs();sfx.knob();
+},{passive:false});
+window.addEventListener('mouseup',()=>{knobDrag=null;});
+window.addEventListener('touchend',()=>{knobDrag=null;});
 
 // MODE
 function setMode(m){
@@ -468,6 +613,7 @@ function setPowered(on){
   document.getElementById('power-label').textContent=on?'ON':'OFF';
   document.getElementById('power-label').style.color=on?'#cc0000':'#999';
   document.getElementById('needle').style.display=on?'block':'none';
+  document.getElementById('tuner').classList.toggle('lit',on);
   if(on&&mode==='FM')setTimeout(tuneRadio,600);
   if(!on){radioAudio.pause();radioAudio.src='';radioPlaying=false;stopVU();stopReels();stopScroll();document.getElementById('rec-dot').style.display='none';}
   updateLCD();
@@ -481,7 +627,7 @@ window.addEventListener('load',()=>{
   widget=SC.Widget(document.getElementById('sc-iframe'));
   const E=SC.Widget.Events;
   widget.bind(E.READY,()=>{widget.getSounds(s=>{trackCount=s?.length||0;});setScStatus(true);});
-  widget.bind(E.PLAY,()=>{playing=true;paused=false;widget.getCurrentSound(s=>{if(s){trackName=s.title;updateLCD();}});widget.getDuration(d=>{duration=d;updateLCD();});widget.getCurrentSoundIndex(i=>{trackIndex=i+1;updateLCD();});animateReels();startVU();document.getElementById('rec-dot').style.display='block';document.getElementById('btn-play').classList.add('active');document.getElementById('btn-pause').classList.remove('active');});
+  widget.bind(E.PLAY,()=>{playing=true;paused=false;widget.getCurrentSound(s=>{if(s){trackName=s.title;updateLCD();}});widget.getDuration(d=>{duration=d;updateLCD();});widget.getCurrentSoundIndex(i=>{trackIndex=i+1;updateLCD();});if(!reelRaf)animateReels();startVU();applyKnobs();document.getElementById('rec-dot').style.display='block';document.getElementById('btn-play').classList.add('active');document.getElementById('btn-pause').classList.remove('active');});
   widget.bind(E.PAUSE,()=>{playing=false;paused=true;stopReels();stopVU();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.add('active');updateLCD();});
   widget.bind(E.FINISH,()=>{playing=false;paused=false;position=0;stopReels();stopVU();stopScroll();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.remove('active');updateLCD();});
   widget.bind(E.PLAY_PROGRESS,e=>{position=e.currentPosition;updateLCD();});
@@ -491,14 +637,33 @@ window.addEventListener('load',()=>{
 function doPlay(){sfx.play();widget?.play();}
 function doPause(){sfx.click();if(playing&&!paused)widget?.pause();else widget?.play();}
 function doStop(){sfx.stop();widget?.seekTo(0);widget?.pause();playing=false;paused=false;position=0;stopReels();stopVU();stopScroll();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.remove('active');updateLCD();}
-function doEject(){sfx.eject();cassetteOpen=!cassetteOpen;document.getElementById('cassette-door').style.transform=cassetteOpen?'perspective(220px) rotateX(-95deg)':'perspective(220px) rotateX(0deg)';document.getElementById('btn-eject').classList.toggle('active',cassetteOpen);if(playing)doStop();}
+function doFF(){sfx.ff();widget?.getPosition(p=>{widget?.seekTo(Math.min(p+15000,duration-500));});}
+function doRew(){sfx.rew();widget?.getPosition(p=>{widget?.seekTo(Math.max(p-15000,0));});}
+function doEject(){sfx.eject();cassetteOpen=!cassetteOpen;document.getElementById('cassette-door').style.transform=cassetteOpen?'translateY(105%)':'translateY(0%)';document.getElementById('btn-eject').classList.toggle('active',cassetteOpen);if(playing)doStop();}
+
 document.getElementById('btn-play').addEventListener('click',doPlay);
 document.getElementById('btn-pause').addEventListener('click',doPause);
 document.getElementById('btn-stop').addEventListener('click',doStop);
-document.getElementById('btn-ff').addEventListener('click',()=>{sfx.ff();widget?.next();});
-document.getElementById('btn-rew').addEventListener('click',()=>{sfx.rew();widget?.prev();});
+document.getElementById('btn-ff').addEventListener('click',doFF);
+document.getElementById('btn-rew').addEventListener('click',doRew);
 document.getElementById('btn-eject').addEventListener('click',doEject);
 document.getElementById('btn-rec').addEventListener('click',sfx.click);
+
+// PRESET BUTTONS
+STATIONS.forEach((st,i)=>{
+  const btn=document.getElementById('pbtn-'+i);
+  if(!btn)return;
+  btn.addEventListener('click',()=>{
+    if(!powered){lcdError('POWER OFF');return;}
+    if(mode!=='FM'){sfx.modeBtn();setMode('FM');}
+    freq=st.freq;
+    updateNeedle();
+    sfx.tune(st.freq);
+    document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    tuneRadio();
+  });
+});
 
 // INIT
 buildVU('vu-l');buildVU('vu-r');buildTunerMarks();updateAllKnobs();updateLCD();
