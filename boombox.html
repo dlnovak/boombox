@@ -53,7 +53,7 @@ button:focus { outline:none; }
 #station-popup { position:absolute; top:-24px; left:50%; transform:translateX(-50%); background:#1a2a3a; color:#88ccee; font-family:monospace; font-size:8px; padding:2px 8px; border-radius:3px; white-space:nowrap; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:20; border:1px solid #2a3a4a; }
 /* TUNER BACKLIGHT */
 #tuner { flex:1; height:44px; cursor:ew-resize; background:linear-gradient(180deg,#b0b8c0 0%,#a0aab4 50%,#a8b4bc 100%); border:1px solid #88aac8; border-radius:3px; position:relative; overflow:visible; box-shadow:inset 0 1px 4px rgba(0,0,0,0.3),0 1px 0 rgba(255,255,255,0.9); transition:background 0.6s, box-shadow 0.6s; user-select:none; }
-#tuner.lit { background:linear-gradient(180deg,#f5d87a 0%,#e8b840 40%,#d4960a 70%,#c88000 100%); box-shadow:inset 0 2px 8px rgba(100,50,0,0.2), 0 0 18px rgba(255,180,40,0.5), 0 0 6px rgba(255,160,0,0.4), 0 1px 0 rgba(255,255,255,0.6); }
+#tuner.lit { background:linear-gradient(180deg,#e8d090 0%,#d4b050 40%,#c89a20 70%,#be8800 100%); box-shadow:inset 0 2px 6px rgba(80,40,0,0.15), 0 0 8px rgba(210,150,30,0.25), 0 1px 0 rgba(255,255,255,0.5); }
 #tuner.lit #tuner-label { color:#5a2a00; }
 #tuner.lit .tmark-line { background:#6a3a00; }
 #tuner.lit .tmark-label { color:#5a3000; }
@@ -121,7 +121,7 @@ button:focus { outline:none; }
   border-radius:3px;
 }
 
-/* FULL-WIDTH LABEL — like a real cassette, covers the whole face */
+/* FULL-WIDTH LABEL */
 #cassette-label-strip {
   position:absolute;
   top:4%; left:4%; right:4%; bottom:30%;
@@ -131,24 +131,17 @@ button:focus { outline:none; }
   box-shadow:0 2px 5px rgba(0,0,0,0.5);
   overflow:hidden;
 }
-/* top color band on label */
+/* top black band */
 #cassette-label-strip::before {
   content:'';
-  position:absolute; top:0; left:0; right:0; height:22%;
+  position:absolute; top:0; left:0; right:0; height:18%;
   background:linear-gradient(180deg,#1a1a1a 0%,#2a2a2a 100%);
-}
-/* bottom name strip */
-#cassette-label-strip::after {
-  content:'';
-  position:absolute; bottom:0; left:0; right:0; height:30%;
-  background:linear-gradient(180deg,#e2e0da,#d0cec8);
-  border-top:1px solid #bbb;
 }
 /* left reel hole cutout */
 .reel-hole-l {
   position:absolute;
-  top:15%; left:12%;
-  width:32%; aspect-ratio:1;
+  top:18%; left:8%;
+  width:35%; aspect-ratio:1;
   border-radius:50%;
   background:#1a1a1a;
   box-shadow:inset 0 2px 6px rgba(0,0,0,0.9), 0 0 0 1px #333;
@@ -158,36 +151,33 @@ button:focus { outline:none; }
 /* right reel hole cutout */
 .reel-hole-r {
   position:absolute;
-  top:15%; right:12%;
-  width:32%; aspect-ratio:1;
+  top:18%; right:8%;
+  width:35%; aspect-ratio:1;
   border-radius:50%;
   background:#1a1a1a;
   box-shadow:inset 0 2px 6px rgba(0,0,0,0.9), 0 0 0 1px #333;
   z-index:3;
   overflow:hidden;
 }
-/* canvases sit inside the reel holes */
-.reel-hole-l canvas,
-.reel-hole-r canvas {
-  width:100%; height:100%;
-}
+.reel-hole-l canvas, .reel-hole-r canvas { width:100%; height:100%; }
 
-/* Name text on label */
+/* Name strip — clearly below reels */
 .cs-name {
   position:absolute;
-  bottom:8%; left:0; right:0;
-  text-align:center;
-  font-size:8px; font-family:monospace;
-  color:#333; letter-spacing:1.5px;
-  z-index:4; text-transform:uppercase;
+  bottom:0; left:0; right:0; height:26%;
+  display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(180deg,#e2e0da,#d0cec8);
+  border-top:1px solid #bbb;
+  font-size:7px; font-family:monospace;
+  color:#333; letter-spacing:2px; text-transform:uppercase;
+  z-index:4;
 }
 .cs-sub {
   position:absolute;
   top:5%; left:0; right:0;
   text-align:center;
-  font-size:5.5px; font-family:monospace;
-  color:#aaa; letter-spacing:2px;
-  z-index:4;
+  font-size:5px; font-family:monospace;
+  color:#aaa; letter-spacing:2px; z-index:4;
 }
 #rec-dot { width:5px; height:5px; border-radius:50%; background:#ff2200; box-shadow:0 0 5px #ff2200; display:none; animation:recBlink 0.8s ease-in-out infinite; position:absolute; bottom:28%; left:50%; transform:translateX(-50%); z-index:5; }
 
@@ -386,11 +376,13 @@ button:focus { outline:none; }
    <!-- TRANSPORT -->
    <div id="row-transport">
     <button class="tbtn" id="btn-eject"><span class="tbtn-icon">⏏</span><span class="tbtn-label">EJECT</span></button>
-    <button class="tbtn" id="btn-rew"   disabled><span class="tbtn-icon">⏮</span><span class="tbtn-label">REW</span></button>
-    <button class="tbtn" id="btn-ff"    disabled><span class="tbtn-icon">⏭</span><span class="tbtn-label">F.FWD</span></button>
+    <button class="tbtn" id="btn-prev"  disabled><span class="tbtn-icon">⏮</span><span class="tbtn-label">PREV</span></button>
+    <button class="tbtn" id="btn-rew"   disabled><span class="tbtn-icon">◀◀</span><span class="tbtn-label">REW</span></button>
     <button class="tbtn" id="btn-stop"  disabled><span class="tbtn-icon">■</span><span class="tbtn-label">STOP</span></button>
     <button class="tbtn" id="btn-play"  disabled><span class="tbtn-icon">▶</span><span class="tbtn-label">PLAY</span></button>
     <button class="tbtn" id="btn-pause" disabled><span class="tbtn-icon">⏸</span><span class="tbtn-label">PAUSE</span></button>
+    <button class="tbtn" id="btn-ff"    disabled><span class="tbtn-icon">▶▶</span><span class="tbtn-label">F.FWD</span></button>
+    <button class="tbtn" id="btn-next"  disabled><span class="tbtn-icon">⏭</span><span class="tbtn-label">NEXT</span></button>
     <button class="tbtn danger" id="btn-rec"><span class="tbtn-icon">⏺</span><span class="tbtn-label">REC</span></button>
    </div>
 
@@ -666,7 +658,7 @@ function setMode(m){
   document.getElementById('mbtn-am').className='mbtn '+(mode==='AM'?'on':'off');
   buildTunerMarks();updateLCD();
   const isTape=mode==='TAPE';
-  ['btn-rew','btn-ff','btn-stop','btn-play','btn-pause'].forEach(id=>{document.getElementById(id).disabled=!(isTape&&scReady);});
+  ['btn-prev','btn-rew','btn-ff','btn-next','btn-stop','btn-play','btn-pause'].forEach(id=>{document.getElementById(id).disabled=!(isTape&&scReady);});
   if(mode==='FM'&&powered)setTimeout(tuneRadio,300);
 }
 document.getElementById('mbtn-stereo').addEventListener('click',sfx.modeBtn);
@@ -691,7 +683,10 @@ function setPowered(on){
 document.getElementById('power-btn').addEventListener('click',()=>{if(!powered){sfx.powerOn();setPowered(true);}else{sfx.powerOff();doStop();setPowered(false);}});
 
 // SC
-function setScStatus(ready){scReady=ready;document.getElementById('sc-dot').className=ready?'live':'';document.getElementById('sc-label').className=ready?'live':'';document.getElementById('sc-label').textContent=ready?'SC LIVE':'SC';if(ready&&mode==='TAPE')['btn-rew','btn-ff','btn-stop','btn-play','btn-pause'].forEach(id=>{document.getElementById(id).disabled=false;});updateLCD();}
+function setScStatus(ready){scReady=ready;document.getElementById('sc-dot').className=ready?'live':'';document.getElementById('sc-label').className=ready?'live':'';document.getElementById('sc-label').textContent=ready?'SC LIVE':'SC';if(ready&&mode==='TAPE')['btn-prev','btn-rew','btn-ff','btn-next','btn-stop','btn-play','btn-pause'].forEach(id=>{document.getElementById(id).disabled=false;});updateLCD();}
+
+// Also enable in setMode
+
 let widget;
 window.addEventListener('load',()=>{
   widget=SC.Widget(document.getElementById('sc-iframe'));
@@ -716,6 +711,8 @@ document.getElementById('btn-pause').addEventListener('click',doPause);
 document.getElementById('btn-stop').addEventListener('click',doStop);
 document.getElementById('btn-ff').addEventListener('click',doFF);
 document.getElementById('btn-rew').addEventListener('click',doRew);
+document.getElementById('btn-next').addEventListener('click',()=>{sfx.ff();widget?.next();});
+document.getElementById('btn-prev').addEventListener('click',()=>{sfx.rew();widget?.prev();});
 document.getElementById('btn-eject').addEventListener('click',doEject);
 document.getElementById('btn-rec').addEventListener('click',sfx.click);
 
