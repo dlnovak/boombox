@@ -52,8 +52,11 @@ button:focus { outline:none; }
 #tuner-glare { position:absolute; top:0; left:0; right:0; height:40%; background:linear-gradient(180deg,rgba(255,255,255,0.38),transparent); pointer-events:none; }
 #station-popup { position:absolute; top:-24px; left:50%; transform:translateX(-50%); background:#1a2a3a; color:#88ccee; font-family:monospace; font-size:8px; padding:2px 8px; border-radius:3px; white-space:nowrap; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:20; border:1px solid #2a3a4a; }
 /* TUNER BACKLIGHT */
-#tuner { flex:1; height:44px; cursor:pointer; background:linear-gradient(180deg,#b0b8c0 0%,#a0aab4 50%,#a8b4bc 100%); border:1px solid #88aac8; border-radius:3px; position:relative; overflow:visible; box-shadow:inset 0 1px 4px rgba(0,0,0,0.3),0 1px 0 rgba(255,255,255,0.9); transition:background 0.4s, box-shadow 0.4s; }
-#tuner.lit { background:linear-gradient(180deg,#c8dff0 0%,#aecce6 50%,#b8d6ec 100%); box-shadow:inset 0 1px 4px rgba(0,0,0,0.1), 0 0 12px rgba(140,200,255,0.4), 0 1px 0 rgba(255,255,255,0.9); }
+#tuner { flex:1; height:44px; cursor:ew-resize; background:linear-gradient(180deg,#b0b8c0 0%,#a0aab4 50%,#a8b4bc 100%); border:1px solid #88aac8; border-radius:3px; position:relative; overflow:visible; box-shadow:inset 0 1px 4px rgba(0,0,0,0.3),0 1px 0 rgba(255,255,255,0.9); transition:background 0.6s, box-shadow 0.6s; user-select:none; }
+#tuner.lit { background:linear-gradient(180deg,#f5d87a 0%,#e8b840 40%,#d4960a 70%,#c88000 100%); box-shadow:inset 0 2px 8px rgba(100,50,0,0.2), 0 0 18px rgba(255,180,40,0.5), 0 0 6px rgba(255,160,0,0.4), 0 1px 0 rgba(255,255,255,0.6); }
+#tuner.lit #tuner-label { color:#5a2a00; }
+#tuner.lit .tmark-line { background:#6a3a00; }
+#tuner.lit .tmark-label { color:#5a3000; }
 
 /* PRESET BUTTONS */
 #row-presets { display:flex; gap:3px; flex-shrink:0; }
@@ -81,7 +84,7 @@ button:focus { outline:none; }
 /* ROUND SPEAKERS */
 .speaker-wrap { width:26%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .speaker-outer { width:97%; aspect-ratio:1; border-radius:50%; background:linear-gradient(145deg,#c4c4c4 0%,#a8a8a8 100%); box-shadow:0 4px 14px rgba(0,0,0,0.42),0 0 0 2px #bbb,0 0 0 3px #a0a0a0,0 0 0 5px #c4c4c4,inset 0 2px 4px rgba(255,255,255,0.5); display:flex; align-items:center; justify-content:center; }
-.speaker-inner { width:85%; height:85%; border-radius:50%; background:#161616; background-image:radial-gradient(circle,#080808 2.5px,transparent 2.5px); background-size:8px 8px; background-position:4px 4px; box-shadow:inset 0 4px 14px rgba(0,0,0,0.85); position:relative; overflow:hidden; }
+.speaker-inner { width:85%; height:85%; border-radius:50%; background:#161616; background-image:radial-gradient(circle,#080808 2.5px,transparent 2.5px); background-size:8px 8px; background-position:4px 4px; box-shadow:inset 0 4px 14px rgba(0,0,0,0.85); position:relative; overflow:hidden; transition:transform 0.04s; }
 .speaker-inner::after { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:18%; height:18%; border-radius:50%; background:radial-gradient(circle at 35% 30%,#4a4a4a,#181818); box-shadow:0 0 10px rgba(0,0,0,0.7); }
 
 /* CENTER COLUMN */
@@ -371,15 +374,13 @@ button:focus { outline:none; }
    <!-- PRESETS -->
    <div id="row-presets">
     <button class="pbtn" id="pbtn-0">KEXP 88.5</button>
-    <button class="pbtn" id="pbtn-1">GROOVE 90.3</button>
-    <button class="pbtn" id="pbtn-2">PARADISE 91.1</button>
-    <button class="pbtn" id="pbtn-3">INDIE 93.7</button>
-    <button class="pbtn" id="pbtn-4">DRONE 95.5</button>
-    <button class="pbtn" id="pbtn-5">SPACE 97.9</button>
-    <button class="pbtn" id="pbtn-6">LUSH 99.5</button>
-    <button class="pbtn" id="pbtn-7">COVERS 101</button>
-    <button class="pbtn" id="pbtn-8">SYN 103.3</button>
-    <button class="pbtn" id="pbtn-9">DEEP 105.7</button>
+    <button class="pbtn" id="pbtn-1">PARADISE 91.1</button>
+    <button class="pbtn" id="pbtn-2">NEW COUNTRY</button>
+    <button class="pbtn" id="pbtn-3">CLASSIC CTY</button>
+    <button class="pbtn" id="pbtn-4">90s COUNTRY</button>
+    <button class="pbtn" id="pbtn-5">BBC WORLD</button>
+    <button class="pbtn" id="pbtn-6">NPR NEWS</button>
+    <button class="pbtn" id="pbtn-7">OLD RADIO</button>
    </div>
 
    <!-- TRANSPORT -->
@@ -401,20 +402,37 @@ button:focus { outline:none; }
 <audio id="radio-audio" crossorigin="anonymous"></audio>
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
-// STATIONS
+// STATIONS — spread across FM band
 const STATIONS=[
-  {freq:88.5,name:"KEXP Seattle",      url:"https://kexp-mp3-128.streamguys1.com/kexp128.mp3"},
-  {freq:90.3,name:"SomaFM Groove",     url:"https://ice6.somafm.com/groovesalad-128-mp3"},
-  {freq:91.1,name:"Radio Paradise",    url:"https://stream.radioparadise.com/mp3-128"},
-  {freq:93.7,name:"SomaFM Indie Pop",  url:"https://ice6.somafm.com/indiepop-128-mp3"},
-  {freq:95.5,name:"SomaFM Drone Zone", url:"https://ice6.somafm.com/dronezone-128-mp3"},
-  {freq:97.9,name:"SomaFM Space Stn",  url:"https://ice6.somafm.com/spacestation-128-mp3"},
-  {freq:99.5,name:"SomaFM Lush",       url:"https://ice6.somafm.com/lush-128-mp3"},
-  {freq:101.1,name:"SomaFM Covers",    url:"https://ice6.somafm.com/covers-128-mp3"},
-  {freq:103.3,name:"SomaFM Synphaera", url:"https://ice6.somafm.com/synphaera-128-mp3"},
-  {freq:105.7,name:"SomaFM Deep Space",url:"https://ice6.somafm.com/deepspaceone-128-mp3"},
+  // Indie/Alt/Electronic
+  {freq:88.5, name:"KEXP Seattle",       url:"https://kexp-mp3-128.streamguys1.com/kexp128.mp3"},
+  {freq:90.3, name:"SomaFM Groove",      url:"https://ice6.somafm.com/groovesalad-128-mp3"},
+  {freq:91.1, name:"Radio Paradise",     url:"https://stream.radioparadise.com/mp3-128"},
+  {freq:93.7, name:"SomaFM Indie Pop",   url:"https://ice6.somafm.com/indiepop-128-mp3"},
+  // Country
+  {freq:95.5, name:"New Country",        url:"https://playerservices.streamtheworld.com/api/livestream-redirect/WNSH.mp3"},
+  {freq:97.1, name:"Classic Country",    url:"https://18183.live.streamtheworld.com/977_CLASSICCOUNT.mp3"},
+  {freq:99.1, name:"90s Country",        url:"https://18183.live.streamtheworld.com/977_90SCOUNTRY.mp3"},
+  // Electronic/Ambient
+  {freq:100.3,name:"SomaFM Drone Zone",  url:"https://ice6.somafm.com/dronezone-128-mp3"},
+  {freq:101.5,name:"SomaFM Lush",        url:"https://ice6.somafm.com/lush-128-mp3"},
+  // Talk/News
+  {freq:102.7,name:"NPR News",           url:"https://npr-ice.streamguys1.com/live.mp3"},
+  {freq:104.1,name:"BBC World Service",  url:"https://stream.live.vc.bbcmedia.co.uk/bbc_world_service"},
+  {freq:105.3,name:"BBC Radio 4",        url:"https://stream.live.vc.bbcmedia.co.uk/bbc_radio_fourfm"},
+  {freq:106.7,name:"Old Time Radio",     url:"http://audio.dismuke.org:8000/dismuke.mp3"},
+  // More music
+  {freq:103.5,name:"SomaFM Space Stn",   url:"https://ice6.somafm.com/spacestation-128-mp3"},
+  {freq:107.9,name:"SomaFM Deep Space",  url:"https://ice6.somafm.com/deepspaceone-128-mp3"},
 ];
-const nearestSt=f=>{let b=null,bd=99;STATIONS.forEach(s=>{const d=Math.abs(s.freq-f);if(d<bd){bd=d;b=s;}});return bd<1.5?b:null;};
+
+// PRESET MAP — maps pbtn index to station by name
+const PRESETS=[
+  "KEXP Seattle","Radio Paradise","New Country","Classic Country",
+  "90s Country","BBC World Service","NPR News","Old Time Radio"
+];
+
+const nearestSt=f=>{let b=null,bd=99;STATIONS.forEach(s=>{const d=Math.abs(s.freq-f);if(d<bd){bd=d;b=s;}});return bd<2?b:null;};
 
 // SFX
 let _ac;
@@ -483,27 +501,79 @@ function updateNeedle(){
   if(st){pop.textContent=st.name;pop.classList.add('show');clearTimeout(stationTimer);stationTimer=setTimeout(()=>pop.classList.remove('show'),2500);}
   else{pop.classList.remove('show');}
 }
-document.getElementById('tuner').addEventListener('click',e=>{
-  const rect=e.currentTarget.getBoundingClientRect();const x=(e.clientX-rect.left)/rect.width;
-  const [min,max]=mode==='FM'?[76,108]:[530,1600];freq=Math.max(min,Math.min(max,min+x*(max-min)));
-  updateNeedle();sfx.tune(freq);if(mode==='FM'&&powered)tuneRadio();
-});
+// TUNER — draggable needle
+let tunerDrag=false;
+function tunerSetFreq(clientX){
+  const rect=document.getElementById('tuner').getBoundingClientRect();
+  const x=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));
+  const [min,max]=mode==='FM'?[76,108]:[530,1600];
+  freq=min+x*(max-min);
+  updateNeedle();sfx.tune(freq);
+  if(mode==='FM'&&powered)tuneRadio();
+}
+const tunerEl=document.getElementById('tuner');
+tunerEl.addEventListener('mousedown',e=>{tunerDrag=true;tunerSetFreq(e.clientX);});
+tunerEl.addEventListener('touchstart',e=>{tunerDrag=true;tunerSetFreq(e.touches[0].clientX);},{passive:true});
+window.addEventListener('mousemove',e=>{if(tunerDrag)tunerSetFreq(e.clientX);});
+window.addEventListener('touchmove',e=>{if(tunerDrag)tunerSetFreq(e.touches[0].clientX);},{passive:true});
+window.addEventListener('mouseup',()=>{tunerDrag=false;});
+window.addEventListener('touchend',()=>{tunerDrag=false;});
+
+// SPEAKER ANIMATION — Web Audio analyzer for FM, simulated for TAPE
+let analyzerNode=null,analyzerData=null,speakerRaf=null;
+let spkLevel=0;
+function setupAnalyzer(){
+  if(!audioCtx||!audioSrc||analyzerNode)return;
+  analyzerNode=audioCtx.createAnalyser();
+  analyzerNode.fftSize=256;
+  analyzerData=new Uint8Array(analyzerNode.frequencyBinCount);
+  // insert analyzer between source and filter
+  audioSrc.disconnect();
+  audioSrc.connect(analyzerNode);
+  analyzerNode.connect(filterNode);
+}
+function animateSpeakers(){
+  speakerRaf=requestAnimationFrame(animateSpeakers);
+  let level=0;
+  if(analyzerNode&&(radioPlaying)){
+    analyzerNode.getByteFrequencyData(analyzerData);
+    const sum=analyzerData.reduce((a,b)=>a+b,0);
+    level=sum/(analyzerData.length*255);
+  } else if(playing&&!paused){
+    // simulated for tape mode
+    level=Math.random()*0.6+0.05;
+  }
+  // smooth it
+  spkLevel=spkLevel*0.7+level*0.3;
+  const scale=1+spkLevel*0.035;
+  const nudge=spkLevel*1.2;
+  document.querySelectorAll('.speaker-inner').forEach((el,i)=>{
+    const dir=i===0?-1:1;
+    el.style.transform=`scale(${scale}) translateX(${dir*nudge*0.5}px)`;
+  });
+}
+function startSpeakers(){if(!speakerRaf)animateSpeakers();}
+function stopSpeakers(){
+  cancelAnimationFrame(speakerRaf);speakerRaf=null;spkLevel=0;
+  document.querySelectorAll('.speaker-inner').forEach(el=>{el.style.transform='';});
+}
 
 // RADIO
 const radioAudio=document.getElementById('radio-audio');
 function tuneRadio(){
   if(mode!=='FM')return;
   const st=nearestSt(freq);
-  radioAudio.pause();radioAudio.src='';radioPlaying=false;stopVU();document.getElementById('rec-dot').style.display='none';
+  radioAudio.pause();radioAudio.src='';radioPlaying=false;stopVU();stopSpeakers();document.getElementById('rec-dot').style.display='none';
   if(st&&powered){
     setupAudioChain();
+    setupAnalyzer();
     if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();
     updateLCD2('TUNING '+st.name+'...');
     radioAudio.src=st.url;
-    radioAudio.play().then(()=>{radioPlaying=true;applyKnobs();startVU();document.getElementById('rec-dot').style.display='block';updateLCD();}).catch(()=>{radioPlaying=false;updateLCD2('SIGNAL LOST');});
+    radioAudio.play().then(()=>{radioPlaying=true;applyKnobs();startVU();startSpeakers();document.getElementById('rec-dot').style.display='block';updateLCD();}).catch(()=>{radioPlaying=false;updateLCD2('SIGNAL LOST');});
   }else{updateLCD();}
 }
-radioAudio.addEventListener('error',()=>{radioPlaying=false;stopVU();updateLCD2('STREAM ERROR');});
+radioAudio.addEventListener('error',()=>{radioPlaying=false;stopVU();stopSpeakers();updateLCD2('STREAM ERROR');});
 
 // LCD
 let scrollPos=0;
@@ -615,7 +685,7 @@ function setPowered(on){
   document.getElementById('needle').style.display=on?'block':'none';
   document.getElementById('tuner').classList.toggle('lit',on);
   if(on&&mode==='FM')setTimeout(tuneRadio,600);
-  if(!on){radioAudio.pause();radioAudio.src='';radioPlaying=false;stopVU();stopReels();stopScroll();document.getElementById('rec-dot').style.display='none';}
+  if(!on){radioAudio.pause();radioAudio.src='';radioPlaying=false;stopVU();stopReels();stopSpeakers();stopScroll();document.getElementById('rec-dot').style.display='none';}
   updateLCD();
 }
 document.getElementById('power-btn').addEventListener('click',()=>{if(!powered){sfx.powerOn();setPowered(true);}else{sfx.powerOff();doStop();setPowered(false);}});
@@ -627,16 +697,16 @@ window.addEventListener('load',()=>{
   widget=SC.Widget(document.getElementById('sc-iframe'));
   const E=SC.Widget.Events;
   widget.bind(E.READY,()=>{widget.getSounds(s=>{trackCount=s?.length||0;});setScStatus(true);});
-  widget.bind(E.PLAY,()=>{playing=true;paused=false;widget.getCurrentSound(s=>{if(s){trackName=s.title;updateLCD();}});widget.getDuration(d=>{duration=d;updateLCD();});widget.getCurrentSoundIndex(i=>{trackIndex=i+1;updateLCD();});if(!reelRaf)animateReels();startVU();applyKnobs();document.getElementById('rec-dot').style.display='block';document.getElementById('btn-play').classList.add('active');document.getElementById('btn-pause').classList.remove('active');});
-  widget.bind(E.PAUSE,()=>{playing=false;paused=true;stopReels();stopVU();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.add('active');updateLCD();});
-  widget.bind(E.FINISH,()=>{playing=false;paused=false;position=0;stopReels();stopVU();stopScroll();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.remove('active');updateLCD();});
+  widget.bind(E.PLAY,()=>{playing=true;paused=false;widget.getCurrentSound(s=>{if(s){trackName=s.title;updateLCD();}});widget.getDuration(d=>{duration=d;updateLCD();});widget.getCurrentSoundIndex(i=>{trackIndex=i+1;updateLCD();});if(!reelRaf)animateReels();startVU();startSpeakers();applyKnobs();document.getElementById('rec-dot').style.display='block';document.getElementById('btn-play').classList.add('active');document.getElementById('btn-pause').classList.remove('active');});
+  widget.bind(E.PAUSE,()=>{playing=false;paused=true;stopReels();stopVU();stopSpeakers();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.add('active');updateLCD();});
+  widget.bind(E.FINISH,()=>{playing=false;paused=false;position=0;stopReels();stopVU();stopSpeakers();stopScroll();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.remove('active');updateLCD();});
   widget.bind(E.PLAY_PROGRESS,e=>{position=e.currentPosition;updateLCD();});
 });
 
 // TRANSPORT
 function doPlay(){sfx.play();widget?.play();}
 function doPause(){sfx.click();if(playing&&!paused)widget?.pause();else widget?.play();}
-function doStop(){sfx.stop();widget?.seekTo(0);widget?.pause();playing=false;paused=false;position=0;stopReels();stopVU();stopScroll();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.remove('active');updateLCD();}
+function doStop(){sfx.stop();widget?.seekTo(0);widget?.pause();playing=false;paused=false;position=0;stopReels();stopVU();stopSpeakers();stopScroll();document.getElementById('rec-dot').style.display='none';document.getElementById('btn-play').classList.remove('active');document.getElementById('btn-pause').classList.remove('active');updateLCD();}
 function doFF(){sfx.ff();widget?.getPosition(p=>{widget?.seekTo(Math.min(p+15000,duration-500));});}
 function doRew(){sfx.rew();widget?.getPosition(p=>{widget?.seekTo(Math.max(p-15000,0));});}
 function doEject(){sfx.eject();cassetteOpen=!cassetteOpen;document.getElementById('cassette-door').style.transform=cassetteOpen?'translateY(105%)':'translateY(0%)';document.getElementById('btn-eject').classList.toggle('active',cassetteOpen);if(playing)doStop();}
@@ -650,9 +720,11 @@ document.getElementById('btn-eject').addEventListener('click',doEject);
 document.getElementById('btn-rec').addEventListener('click',sfx.click);
 
 // PRESET BUTTONS
-STATIONS.forEach((st,i)=>{
+PRESETS.forEach((name,i)=>{
   const btn=document.getElementById('pbtn-'+i);
   if(!btn)return;
+  const st=STATIONS.find(s=>s.name===name);
+  if(!st)return;
   btn.addEventListener('click',()=>{
     if(!powered){lcdError('POWER OFF');return;}
     if(mode!=='FM'){sfx.modeBtn();setMode('FM');}
